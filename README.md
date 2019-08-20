@@ -1,0 +1,2 @@
+# TimeManeger
+vbsをpsに移植
