@@ -15,10 +15,25 @@ $PreAppState = 0
 $OnlyOne3min = 0
 $OnlyOne10sec = 0
 
+#日付による初期化
+$line = Get-Content .\memory
+$content = $line.split(">",2)
+$memorydate = $content[0]
+#違う日
+if([string](Get-Date -Format "yyyy/MM/dd") -ne $memorydate){
+	Clear-Content .\memory
+	$memorytime
+}
+#同じ日
+else {
+	$memorytime = $content[1]
+}
+
 
 While (1) {
+	$Totaltime = $Watch.Elapsed.TotalSeconds + [int]$memorytime
 	#制限時間になっていないとき
-	If ( $Watch.Elapsed.TotalSeconds -lt $LockTimeSec){
+	If ( $Totaltime -lt $LockTimeSec){
 		#アプリの状態の確認
 		Foreach ($TARGET_PROCESS In $TARGET_PROCESS_SET){
 			$ErrorActionPreference = "silentlycontinue"
@@ -52,11 +67,11 @@ While (1) {
 		Write-Host "standby"
 		}
 		#3分前になったら
-		If ((($LockTimeSec - $Watch.Elapsed.TotalSeconds) -lt 180 ) -and ($OnlyOne3min -eq 0)){
+		If ((($LockTimeSec - $Totaltime) -lt 180 ) -and ($OnlyOne3min -eq 0)){
 		Balloon "残り３分です" "Warning"
 		$OnlyOne3min = 1
 		}
-		If ((($LockTimeSec - $Watch.Elapsed.TotalSeconds) -lt 10) -and ($OnlyOne10sec -eq 0)){
+		If ((($LockTimeSec - $Totaltime) -lt 10) -and ($OnlyOne10sec -eq 0)){
 			Balloon "残り10秒です。終了してください！さもなければ強制終了します。" "Warning"
 			$OnlyOne10sec = 1
 			}
@@ -75,5 +90,7 @@ While (1) {
 		}
 	}
 	$PreAppState = $AppState
+	$nowdate = Get-Date -Format "yyyy/MM/dd"
+	Set-Content -Path .\memory -Value $nowdate">"$Totaltime 
 	Start-Sleep 1
 }
