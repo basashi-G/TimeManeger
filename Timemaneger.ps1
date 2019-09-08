@@ -23,7 +23,7 @@ $memorydate = $content[0]
 #ˆá‚¤“ú
 if([string](Get-Date -Format "yyyy/MM/dd") -ne $memorydate){
 	Clear-Content .\memory
-	$memorytime
+	$memorytime = 0
 }
 #“¯‚¶“ú
 else {
