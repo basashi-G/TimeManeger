@@ -2,7 +2,8 @@
 
 $Watch = New-Object System.Diagnostics.Stopwatch
 
-$TARGET_PROCESS_SET = Read_ini AppName
+$TARGET_PROCESS_SET_String = Read_ini AppName
+$TARGET_PROCESS_SET = $TARGET_PROCESS_SET_String.Split(",")
 
 #ójì˙Ç≤Ç∆ÇÃéûä‘ÇÃì«Ç›çûÇ›
 $WhatDayToday = [String](Get-Date).DayOfWeek 
