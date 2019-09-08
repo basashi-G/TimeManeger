@@ -1,37 +1,24 @@
-$TARGET_PROCESS_SET = "notepad","Hacknet","MiniMetro","PapersPlease","reprisaluniverse","Epistory"
-$LookTime = 10 #秒
+. "C:\Users\tomoki\Git\TimeManeger\functions.ps1"
+
+$Watch = New-Object System.Diagnostics.Stopwatch
+
+$TARGET_PROCESS_SET = Read_ini AppName
+
+#曜日ごとの時間の読み込み
+$WhatDayToday = [String](Get-Date).DayOfWeek 
+$ConfigStyle = "Time_"+([String]$WhatDayToday ).Substring(0,3)
+$LockTimeMin = Read_ini $ConfigStyle
+$LockTimeSec = $LockTimeMin*60
 
 $PreAppState = 0
 
-$Watch = New-Object System.Diagnostics.Stopwatch
-$OnlyOne = 0
+$OnlyOne3min = 0
+$OnlyOne10sec = 0
 
-Function Balloon ($Msg,$IconType) {
-	#System.Windows.FormsクラスをPowerShellセッションに追加
-	Add-Type -AssemblyName System.Windows.Forms
-	#NotifyIconクラスをインスタンス化
-	$balloon = New-Object System.Windows.Forms.NotifyIcon
-	#powershellのアイコンを抜き出す
-	$balloon.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon('C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe')
-	#特定のTipIconのみを使用可
-	#[System.Windows.Forms.ToolTipIcon] | Get-Member -Static -Type Property
-	$balloon.BalloonTipIcon  = [System.Windows.Forms.ToolTipIcon]::$IconType
-	#表示するメッセージ
-	$balloon.BalloonTipText  = $Msg
-	#表示するタイトル
-	$balloon.BalloonTipTitle = 'TimeManeger'
-	#タスクトレイアイコン表示
-	$balloon.Visible = $True
-	#1000ミリ秒表示
-	$balloon.ShowBalloonTip(5000)
-	#1秒待ってからタスクトレイアイコン非表示
-	Start-Sleep -Seconds 10
-	$balloon.Visible = $False
-}
 
 While (1) {
 	#制限時間になっていないとき
-	If ( $Watch.Elapsed.TotalSeconds -lt $LookTime){
+	If ( $Watch.Elapsed.TotalSeconds -lt $LockTimeSec){
 		#アプリの状態の確認
 		Foreach ($TARGET_PROCESS In $TARGET_PROCESS_SET){
 			$ErrorActionPreference = "silentlycontinue"
@@ -64,11 +51,15 @@ While (1) {
 		else{
 		Write-Host "standby"
 		}
-		#５分前になったら
-		If ((($LookTime - $Watch.Elapsed.TotalSeconds) -lt 5 ) -and ($OnlyOne -eq 0)){
+		#3分前になったら
+		If ((($LockTimeSec - $Watch.Elapsed.TotalSeconds) -lt 180 ) -and ($OnlyOne3min -eq 0)){
 		Balloon "残り３分です" "Warning"
-		$OnlyOne = 1
+		$OnlyOne3min = 1
 		}
+		If ((($LockTimeSec - $Watch.Elapsed.TotalSeconds) -lt 10) -and ($OnlyOne10sec -eq 0)){
+			Balloon "残り10秒です。終了してください！さもなければ強制終了します。" "Warning"
+			$OnlyOne10sec = 1
+			}
 	}
 	#制限時間を過ぎたとき
 	Else{
